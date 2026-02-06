@@ -22,31 +22,39 @@ async function getRoutes() {
     try {
         // Fetch the labs projects JSON
         const response = await fetch('https://srirams.me/labs-projects.json');
-
         if (!response.ok) {
             console.error('Failed to fetch labs-projects.json:', response.status);
-            return routesCache || {}; // Return old cache or empty object
+            return routesCache || { proxied: {}, redirect: {} };
         }
 
         const projects = await response.json();
 
-        // Build routes object from projects
-        // We need pagesWorkerUrl field in the JSON for this to work
-        const routes = {};
+        // Build separate route objects for proxied and redirect projects
+        const routes = {
+            proxied: {},
+            redirect: {}
+        };
+
         for (const project of projects) {
             if (project.labUrl && project.pagesWorkerUrl) {
-                routes[project.labUrl] = project.pagesWorkerUrl;
+                // Default to proxied if isProxied is not explicitly set to false
+                const isProxied = project.isProxied !== false;
+
+                if (isProxied) {
+                    routes.proxied[project.labUrl] = project.pagesWorkerUrl;
+                } else {
+                    routes.redirect[project.labUrl] = project.pagesWorkerUrl;
+                }
             }
         }
 
         // Update cache
         routesCache = routes;
         cacheTimestamp = now;
-
         return routes;
     } catch (error) {
         console.error('Error fetching routes:', error);
-        return routesCache || {}; // Return old cache or empty object
+        return routesCache || { proxied: {}, redirect: {} };
     }
 }
 
@@ -58,14 +66,25 @@ export async function onRequest(context) {
     // Get routes (from cache or fetch)
     const routes = await getRoutes();
 
-    // Check if path matches any project route
-    for (const [route, target] of Object.entries(routes)) {
+    // Check redirect routes first (these take precedence)
+    for (const [route, target] of Object.entries(routes.redirect)) {
+        if (pathname === route || pathname.startsWith(route + '/')) {
+            // Build the full target URL with the remaining path
+            const targetPath = pathname.slice(route.length) || '/';
+            const targetUrl = new URL(targetPath, target);
+            targetUrl.search = url.search;
+
+            // Return 302 redirect
+            return Response.redirect(targetUrl.toString(), 302);
+        }
+    }
+
+    // Check proxied routes
+    for (const [route, target] of Object.entries(routes.proxied)) {
         if (pathname === route || pathname.startsWith(route + '/')) {
             // Remove the project prefix and proxy to the actual deployment
             const targetPath = pathname.slice(route.length) || '/';
             const targetUrl = new URL(targetPath, target);
-
-            // Copy search params
             targetUrl.search = url.search;
 
             // Create new request with modified URL
