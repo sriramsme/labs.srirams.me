@@ -1,0 +1,15 @@
+name = "labs-router"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# Routes configuration
+# This worker will handle all requests to labs.srirams.me
+routes = [
+  { pattern = "labs.srirams.me/*", zone_name = "srirams.me" }
+]
+
+# Optional: Add custom domains if needed
+# [env.production]
+# routes = [
+#   { pattern = "labs.srirams.me/*", zone_name = "srirams.me" }
+# ]
