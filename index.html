@@ -192,7 +192,7 @@
                         ${project.featured ? '<span class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-accent text-background mb-4 w-fit">Featured</span>' : ''}
                         
                         <h3 class="text-2xl font-bold mb-3">
-                            <a href="${project.labUrl}" class="hover:text-accent transition-colors">
+                            <a href="${project.url}" class="hover:text-accent transition-colors">
                                 ${project.title}
                             </a>
                         </h3>
@@ -212,7 +212,7 @@
                         
                         <div class="flex gap-4 pt-4 border-t border-border">
                             <a 
-                                href="${project.labUrl}" 
+                                href="${project.url}" 
                                 class="inline-flex items-center gap-2 text-accent hover:text-accent-hover font-semibold transition-colors"
                             >
                                 Try it
@@ -220,9 +220,9 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                 </svg>
                             </a>
-                            ${project.hasDetailPage && project.url ? `
+                            ${project.hasDetailPage && project.slug ? `
                                 <a 
-                                    href="https://srirams.me/projects/${project.url}" 
+                                    href="https://srirams.me/projects/${project.slug}" 
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     class="inline-flex items-center gap-2 text-foreground/60 hover:text-accent transition-colors"
